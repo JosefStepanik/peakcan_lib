@@ -1,4 +1,4 @@
-# Peak-PCAN
+# Peak_PCAN
 Repository provides codes for Peak CAN communication using Python.
 
 ## Peak CAN sources
