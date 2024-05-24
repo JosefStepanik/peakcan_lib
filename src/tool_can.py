@@ -23,6 +23,9 @@ from loguru import logger
 import time
 
 class NewPCANBasic(PCANBasic):
+    '''
+    Own class for CAN communication.
+    '''
     def __init__(self, PcanHandle=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.occupied = False
@@ -206,11 +209,10 @@ class NewPCANBasic(PCANBasic):
         if (msgtype & PCAN_MESSAGE_RTR.value) == PCAN_MESSAGE_RTR.value:
             return "Remote Request"
         else:
-            strTemp = "["
+            strTemp = b""
             for x in data:
-                strTemp += '%.2X ' % x
-            strTemp = strTemp[:-1] + ']'    
-            return strTemp
+                strTemp += b'%.2X ' % x
+            return str(strTemp).replace("'","",2).replace("b","",1)
         
     def process_message_can(self, msg, itstimestamp):
         """
@@ -291,7 +293,6 @@ class NewPCANBasic(PCANBasic):
                 if (msgtype & PCAN_MESSAGE_ESI.value) == PCAN_MESSAGE_ESI.value:
                     strTemp += ' ESI'
                 strTemp += ' ]'
-                
         return strTemp
     
     def show_current_configuration(self):
