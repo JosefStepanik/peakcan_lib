@@ -138,6 +138,8 @@ class NewPCANBasic(PCANBasic):
                 time.sleep(self.sleeptime)
                 result = self.Read(self.PcanHandle)
                 logger.debug("Response for command {} is {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), self.get_data_string(result[1].DATA, result[1].MSGTYPE)))
+            else:
+                raise Exception('Write message with error.')    
         except Exception as err:
             logger.error("Write/read command was with error: {}!".format(err))
             raise

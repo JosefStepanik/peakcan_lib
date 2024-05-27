@@ -3,6 +3,7 @@ from logging import PlaceHolder
 import os, sys
 from re import I
 from string import printable
+from tkinter import END
 
 # Finding the path of the current file
 current_path = os.path.dirname(__file__)
@@ -109,14 +110,14 @@ class TestApp(QWidget):
 
         # Add widgets.
         self.hw_combo = QComboBox()
-        self.bitrate = QComboBox()
+        self.hw_rate = QComboBox()
         for item in HW_CONNECT:
             self.hw_combo.addItem(item)
         for item in HW_RATE:
-            self.bitrate.addItem(item)
+            self.hw_rate.addItem(item)
             
         self.line_edits = []
-        for _ in range(8):
+        for _ in range(9):
             line_edit = QLineEdit()
             self.line_edits.append(line_edit)
             container.addWidget(line_edit)
@@ -128,6 +129,7 @@ class TestApp(QWidget):
         self.line_edits[5].setPlaceholderText('Data 5')
         self.line_edits[6].setPlaceholderText('Data 6')
         self.line_edits[7].setPlaceholderText('Data 7')
+        self.line_edits[8].setPlaceholderText('Data 8')
 
         self.init_btn = QPushButton('Initialize')
         self.init_btn.clicked.connect(self.init_can)
@@ -139,7 +141,7 @@ class TestApp(QWidget):
         
         # Add to layout.
         self.layout.addWidget(self.hw_combo)
-        self.layout.addWidget(self.bitrate)
+        self.layout.addWidget(self.hw_rate)
         self.layout.addWidget(self.init_btn)
         self.layout.addLayout(container)
         self.layout.addWidget(self.send_btn)
@@ -155,9 +157,10 @@ class TestApp(QWidget):
         '''
         try:
             self.can = NewPCANBasic(PcanHandle=self.hw_combo.currentText())
-            self.can.Initialize(self.PcanHandle, self.hw_rate.currentText())
-        except :
-            self.textbox.setText('Error in initializing CAN device.\n')
+            self.can.Initialize(self.can.PcanHandle, self.hw_rate.currentText())
+            self.textbox.setText('Initialized.\n')
+        except Exception as err:
+            self.textbox.setText('Error in initializing CAN device: {}.\n'.format(err))
         
     def send_can(self):
         '''
@@ -165,18 +168,18 @@ class TestApp(QWidget):
         '''
         try:
             command = []
-            i = 0
             for line_edit in self.line_edits:
-                if not line_edit.text().isdigit() or int(line_edit.text()) < 0 or int(line_edit.text()) > 255:
+                inp = line_edit.text()
+                if not inp.isdigit() or int(inp) < 0 or int(inp) > 255:
                     self.textbox.insertPlainText("Please enter valid data (0-255).\n")
                     return
-                command[i] = int(line_edit.text())
-                i += 1
-            response = self.can.write_read(self.line_edits[0].text(), command)
-            self.textbox.insert("0.0","You recieve {0} with address ID {1}.\n".format(self.can.GetDataString(response[1].DATA, response[1].MSGTYPE), self.can.GetIdString(response[1].ID, response[1].MSGTYPE)))
-            
-        except :
-            self.textbox.append('Error in sending the CAN message.\n')
+                command.append(int(inp))
+            address = command[0]
+            command = command[1:len(command)]
+            response = self.can.write_read(address, command)
+            self.textbox.setText("You recieve {0} with address ID {1}.\n".format(self.can.get_data_string(response[1].DATA, response[1].MSGTYPE), self.can.get_id_string(response[1].ID, response[1].MSGTYPE)))
+        except Exception as err:
+            self.textbox.append('Error in sending the CAN message: {}.\n'.format(err))
             
         
 
