@@ -22,6 +22,52 @@ from PCANBasic import *        ## PCAN-Basic library import
 from loguru import logger
 import time
 
+
+HW_HANDLES = {  'PCAN_PCIBUS1':PCAN_PCIBUS1,
+                'PCAN_ISABUS1':PCAN_ISABUS1, 'PCAN_ISABUS2':PCAN_ISABUS2, 'PCAN_ISABUS3':PCAN_ISABUS3, 'PCAN_ISABUS4':PCAN_ISABUS4, 
+                'PCAN_ISABUS5':PCAN_ISABUS5, 'PCAN_ISABUS6':PCAN_ISABUS6, 'PCAN_ISABUS7':PCAN_ISABUS7, 'PCAN_ISABUS8':PCAN_ISABUS8, 
+                'PCAN_DNGBUS1':PCAN_DNGBUS1
+                }
+
+HW_BAUDRATES = {'1 MBit/sec':PCAN_BAUD_1M, '800 kBit/sec':PCAN_BAUD_800K, '500 kBit/sec':PCAN_BAUD_500K, '250 kBit/sec':PCAN_BAUD_250K,
+                '125 kBit/sec':PCAN_BAUD_125K, '100 kBit/sec':PCAN_BAUD_100K, '95,238 kBit/sec':PCAN_BAUD_95K, '83,333 kBit/sec':PCAN_BAUD_83K,
+                '50 kBit/sec':PCAN_BAUD_50K, '47,619 kBit/sec':PCAN_BAUD_47K, '33,333 kBit/sec':PCAN_BAUD_33K, '20 kBit/sec':PCAN_BAUD_20K,
+                '10 kBit/sec':PCAN_BAUD_10K, '5 kBit/sec':PCAN_BAUD_5K
+                }
+
+ERRORS = {  PCAN_ERROR_OK            : 'No error',
+            PCAN_ERROR_XMTFULL       : 'Transmit buffer in CAN controller is full',
+            PCAN_ERROR_OVERRUN       : 'CAN controller was read too late',
+            PCAN_ERROR_BUSLIGHT      : 'Bus error: an error counter reached the \'light\' limit',
+            PCAN_ERROR_BUSHEAVY      : 'Bus error: an error counter reached the \'heavy\' limit',  
+            PCAN_ERROR_BUSWARNING    : 'USHEAVY) # Bus error: an error counter reached the \'warning\' limit',
+            PCAN_ERROR_BUSPASSIVE    : 'Bus error: the CAN controller is error passive',
+            PCAN_ERROR_BUSOFF        : 'Bus error: the CAN controller is in bus-off state',
+            PCAN_ERROR_ANYBUSERR     : 'Mask for all bus errors',
+            PCAN_ERROR_QRCVEMPTY     : 'Receive queue is empty',
+            PCAN_ERROR_QOVERRUN      : 'Receive queue was read too late',
+            PCAN_ERROR_QXMTFULL      : 'Transmit queue is full',
+            PCAN_ERROR_REGTEST       : 'Test of the CAN controller hardware registers failed (no hardware found)',
+            PCAN_ERROR_NODRIVER      : 'Driver not loaded',
+            PCAN_ERROR_HWINUSE       : 'Hardware already in use by a Net',
+            PCAN_ERROR_NETINUSE      : 'A Client is already connected to the Net',
+            PCAN_ERROR_ILLHW         : 'Hardware handle is invalid',
+            PCAN_ERROR_ILLNET        : 'Net handle is invalid',
+            PCAN_ERROR_ILLCLIENT     : 'Client handle is invalid',
+            PCAN_ERROR_ILLHANDLE     : 'Mask for all handle errors',
+            PCAN_ERROR_RESOURCE      : 'Resource (FIFO, Client, timeout) cannot be created',
+            PCAN_ERROR_ILLPARAMTYPE  : 'Invalid parameter',
+            PCAN_ERROR_ILLPARAMVAL   : 'Invalid parameter value',
+            PCAN_ERROR_UNKNOWN       : 'Unknown error',
+            PCAN_ERROR_ILLDATA       : 'Invalid data, function, or action',
+            PCAN_ERROR_ILLMODE       : 'Driver object state is wrong for the attempted operation',
+            PCAN_ERROR_CAUTION       : 'An operation was successfully carried out, however, irregularities were registered',
+            PCAN_ERROR_INITIALIZE    : 'Channel is not initialized [Value was changed from 0x40000 to 0x4000000]',
+            PCAN_ERROR_ILLOPERATION  : 'Invalid operation [Value was changed from 0x80000 to 0x8000000]',
+            }
+
+
+
 class NewPCANBasic(PCANBasic):
     '''
     Own class for CAN communication.
