@@ -1,9 +1,5 @@
 # Import common modules
-from logging import PlaceHolder
 import os, sys
-from re import I
-from string import printable
-from tkinter import END
 
 # Finding the path of the current file
 current_path = os.path.dirname(__file__)
