@@ -165,11 +165,12 @@ class TestApp(QWidget):
         try:
             command = []
             for line_edit in self.line_edits:
-                inp = line_edit.text()
-                if not inp.isdigit() or int(inp) < 0 or int(inp) > 255:
+                inp_str = line_edit.text()
+                inp_num = int(inp_str,16)
+                if not inp_str.isdigit() or inp_num < 0 or inp_num > 255:
                     self.textbox.insertPlainText("Please enter valid data (0-255).\n")
                     return
-                command.append(int(inp))
+                command.append(inp_num)
             address = command[0]
             command = command[1:len(command)]
             response = self.can.write_read(address, command)
