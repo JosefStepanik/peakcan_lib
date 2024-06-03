@@ -18,7 +18,7 @@
 # Info at http://www.iqsgroup.cz
 # 
 
-from PCANBasic import *        ## PCAN-Basic library import
+from Tools.Peak_PCAN.src.PCANBasic import *        ## PCAN-Basic library import
 from loguru import logger
 import time
 
