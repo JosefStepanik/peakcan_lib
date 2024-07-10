@@ -176,6 +176,7 @@ class NewPCANBasic(PCANBasic):
             time.sleep(self.sleeptime)
         self.occupied = True
         try:
+            self.Reset(self.PcanHandle)
             command_message = self.create_can_msg(address, command)
             if PCAN_ERROR_OK == self.Write(self.PcanHandle, command_message):
                 logger.debug("Command {} sent with ID {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
