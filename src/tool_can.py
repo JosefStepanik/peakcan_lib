@@ -115,7 +115,7 @@ class NewPCANBasic(PCANBasic):
             result = self.Write(self.PcanHandle, command_message)
             if PCAN_ERROR_OK == result:
                 self.occupied = False
-                logger.info('Write command {} with ID {} was successfull.'.format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
+                # logger.info('Write command {} with ID {} was successfull.'.format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
             else:
                 logger.error('Write command {} with ID {} was not successfull.'.format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
                 raise Exception('Write command was not successfull.')
@@ -179,10 +179,10 @@ class NewPCANBasic(PCANBasic):
             self.Reset(self.PcanHandle)
             command_message = self.create_can_msg(address, command)
             if PCAN_ERROR_OK == self.Write(self.PcanHandle, command_message):
-                logger.debug("Command {} sent with ID {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
+                # logger.debug("Command {} sent with ID {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
                 time.sleep(self.sleeptime)
                 result = self.Read(self.PcanHandle)
-                logger.debug("Response for command {} is {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), self.get_data_string(result[1].DATA, result[1].MSGTYPE)))
+                # logger.debug("Response for command {} is {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), self.get_data_string(result[1].DATA, result[1].MSGTYPE)))
             else:
                 raise Exception('Write message with error.')    
         except Exception as err:
