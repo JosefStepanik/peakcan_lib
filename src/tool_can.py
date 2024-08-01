@@ -20,7 +20,7 @@
 
 from external.control_unit_knmx.Peak_PCAN.src.PCANBasic import *        ## PCAN-Basic library import
 from loguru import logger
-import time
+import sys, time
 
 
 HW_HANDLES = {  'PCAN_PCIBUS1':PCAN_PCIBUS1,
@@ -66,7 +66,7 @@ ERRORS = {  PCAN_ERROR_OK            : 'No error',
             PCAN_ERROR_ILLOPERATION  : 'Invalid operation [Value was changed from 0x80000 to 0x8000000]',
             }
 
-
+ 
 
 class NewPCANBasic(PCANBasic):
     '''
@@ -74,6 +74,13 @@ class NewPCANBasic(PCANBasic):
     '''
     def __init__(self, PcanHandle=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_STATUS, Buffer=PCAN_PARAMETER_ON) == PCAN_ERROR_OK:
+            logger.info('Logging was enabled.')
+        try:
+            if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_CONFIGURE, Buffer=LOG_FUNCTION_ALL) == PCAN_ERROR_OK:
+                logger.info('Logging was configured: Logs the parameters passed to a function.')
+        except Exception as err:
+            logger.error(f'Error in logging configuration: {err}')
         self.occupied = False
         self.sleeptime = 0.1
         self.PcanHandle = PcanHandle
@@ -178,6 +185,7 @@ class NewPCANBasic(PCANBasic):
         try:
             self.Reset(self.PcanHandle)
             command_message = self.create_can_msg(address, command)
+            time.sleep(self.sleeptime)
             if PCAN_ERROR_OK == self.Write(self.PcanHandle, command_message):
                 # logger.debug("Command {} sent with ID {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
                 time.sleep(self.sleeptime)
