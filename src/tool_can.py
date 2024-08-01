@@ -18,9 +18,9 @@
 # Info at http://www.iqsgroup.cz
 # 
 
-from external.control_unit_knmx.Peak_PCAN.src.PCANBasic import *        ## PCAN-Basic library import
+from external.Peak_PCAN.src.PCANBasic import *        ## PCAN-Basic library import
 from loguru import logger
-import sys, time
+import time
 
 
 HW_HANDLES = {  'PCAN_PCIBUS1':PCAN_PCIBUS1,
