@@ -83,6 +83,13 @@ class TestApp(QWidget):
         '''
         try:
             self.can = NewPCANBasic(PcanHandle=self.m_NonPnPHandles[self.hw_combo.currentText()])
+            if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_STATUS, Buffer=PCAN_PARAMETER_ON) == PCAN_ERROR_OK:
+                logger.info('Logging was enabled.')
+            try:
+                if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_CONFIGURE, Buffer=LOG_FUNCTION_ALL) == PCAN_ERROR_OK:
+                    logger.info('Logging was configured: Logs the parameters passed to a function.')
+            except Exception as err:
+                logger.error(f'Error in logging configuration: {err}')
             status = self.can.Initialize(self.can.PcanHandle, self.m_BAUDRATES[self.hw_rate.currentText()])
             if PCAN_ERROR_OK != status:
                 raise
