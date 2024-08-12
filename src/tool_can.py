@@ -74,15 +74,16 @@ class NewPCANBasic(PCANBasic):
     '''
     def __init__(self, PcanHandle=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_STATUS, Buffer=PCAN_PARAMETER_ON) == PCAN_ERROR_OK:
-            logger.info('Logging was enabled.')
-        try:
-            if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_CONFIGURE, Buffer=LOG_FUNCTION_ALL) == PCAN_ERROR_OK:
-                logger.info('Logging was configured: Logs the parameters passed to a function.')
-        except Exception as err:
-            logger.error(f'Error in logging configuration: {err}')
+        # Set parameter PCAN_LOG_STATUS to enable logging.
+        # if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_STATUS, Buffer=PCAN_PARAMETER_ON) == PCAN_ERROR_OK:
+        #     logger.info('Logging was enabled.')
+        # try:
+        #     if self.SetValue(Channel=PCAN_NONEBUS, Parameter=PCAN_LOG_CONFIGURE, Buffer=LOG_FUNCTION_ALL) == PCAN_ERROR_OK:
+        #         logger.info('Logging was configured: Logs the parameters passed to a function.')
+        # except Exception as err:
+        #     logger.error(f'Error in logging configuration: {err}')
         self.occupied = False
-        self.sleeptime = 0.1
+        self.sleeptime = 0.05
         self.PcanHandle = PcanHandle
         
     def create_can_msg(self, address, command):
@@ -111,14 +112,15 @@ class NewPCANBasic(PCANBasic):
 
         try:
             result = None
-            while self.occupied:
+            command_message = self.create_can_msg(address, command)
+            # while self.occupied:
+            while PCAN_ERROR_QXMTFULL == self.GetStatus(self.PcanHandle):
                 if time.time() - start_time >= timeout:
                     logger.debug('Timeout: Unable to acquire CAN device.')
                     return None
                 logger.debug('Wait for release CAN device.')
                 time.sleep(self.sleeptime)
-            self.occupied = True
-            command_message = self.create_can_msg(address, command)
+            # self.occupied = True
             result = self.Write(self.PcanHandle, command_message)
             if PCAN_ERROR_OK == result:
                 self.occupied = False
@@ -131,6 +133,7 @@ class NewPCANBasic(PCANBasic):
         finally:
             self.occupied = False
         return result
+            
     
     def read_messages(self):
         """
@@ -140,22 +143,18 @@ class NewPCANBasic(PCANBasic):
             A tuple variable response
         """
         result = PCAN_ERROR_OK
-    
+        responses = []    
         # We read at least one time the queue looking for messages. If a message is found, we look again trying to find more. If the queue is empty or an error occurr, we get out from the while statement.
         while (not (result & PCAN_ERROR_QRCVEMPTY)):
-            response = self.read_message(self.PcanHandle)
+            response = self.Read(self.PcanHandle)
             result = response[0]
             if result != PCAN_ERROR_OK and result != PCAN_ERROR_QRCVEMPTY:
                 self.show_status(result)
-        return response
+            responses.append(response)
+        return responses[0]
     
+
     def read_message(self):
-        """
-        Function for reading CAN messages on normal CAN devices
-    
-        Returns:
-            A TPCANStatus error code
-        """
         timeout = 3  # Timeout in seconds
         start_time = time.time()
         try:
@@ -165,31 +164,58 @@ class NewPCANBasic(PCANBasic):
                     return None
                 time.sleep(self.sleeptime)
             self.occupied = True
-            result = self.Read(self.PcanHandle)
-            if result[0] == PCAN_ERROR_OK:
+            response = self.read_messages()
+            if response[0] == PCAN_ERROR_OK:
                 self.occupied = False
         except Exception as err:
             logger.error("Read command was with error: {}!".format(err))
             raise
         finally:
             self.occupied = False
-        return result
+        return response
+    
+    # def read_message(self):
+    #     """
+    #     Function for reading CAN messages on normal CAN devices
+    
+    #     Returns:
+    #         A TPCANStatus error code
+    #     """
+    #     timeout = 3  # Timeout in seconds
+    #     start_time = time.time()
+    #     try:
+    #         while self.occupied:
+    #             if time.time() - start_time >= timeout:
+    #                 logger.debug('Timeout: Unable to acquire CAN device.')
+    #                 return None
+    #             time.sleep(self.sleeptime)
+    #         self.occupied = True
+    #         result = self.Read(self.PcanHandle)
+    #         if result[0] == PCAN_ERROR_OK:
+    #             self.occupied = False
+    #     except Exception as err:
+    #         logger.error("Read command was with error: {}!".format(err))
+    #         raise
+    #     finally:
+    #         self.occupied = False
+    #     return result
     
     ## Sent command and read response 
     def write_read(self, address, command):
+        '''
+        Write command and read response.
+        '''
         result = None
-        while self.occupied:
+        command_message = self.create_can_msg(address, command)
+        while self.occupied or PCAN_ERROR_QXMTFULL == self.GetStatus(self.PcanHandle):
             logger.debug('Wait for release CAN device.')
             time.sleep(self.sleeptime)
         self.occupied = True
         try:
-            self.Reset(self.PcanHandle)
-            command_message = self.create_can_msg(address, command)
-            time.sleep(self.sleeptime)
             if PCAN_ERROR_OK == self.Write(self.PcanHandle, command_message):
                 # logger.debug("Command {} sent with ID {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), address))
                 time.sleep(self.sleeptime)
-                result = self.Read(self.PcanHandle)
+                result = self.read_messages()
                 # logger.debug("Response for command {} is {}.".format(self.get_data_string(command_message.DATA, command_message.MSGTYPE), self.get_data_string(result[1].DATA, result[1].MSGTYPE)))
             else:
                 raise Exception('Write message with error.')    
